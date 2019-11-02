@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include <algorithm>
 #include <netinet/in.h>
 #include <linux/types.h>
 #include <linux/netfilter.h>		/* for NF_ACCEPT */
@@ -10,6 +11,7 @@
 #include <libnetfilter_queue/libnetfilter_queue.h>
 #include <netinet/tcp.h>
 #include <netinet/ip.h>
+using namespace std;
 
 void dump(unsigned char* buf, int size) {
 	int i;
@@ -89,7 +91,7 @@ static u_int32_t print_pkt (struct nfq_data *tb)
 		int ishost = 0;
 		for(int i=0; i<tcpdatalen - 3; i++)
 		{
-			if(tcpdata[i] == 'H' && tcpdata[i+1] == 'o' && tcpdata[i+2] == 's' && tcpdata[i+3] == 't')
+			if(memcmp(tcpdata + i, "Host", 4) == 0)
 			{
 				for(int j=i+6; j<tcpdatalen; j++)
 				{
@@ -106,7 +108,7 @@ static u_int32_t print_pkt (struct nfq_data *tb)
 		}
 		if(ishost == 0)
 			return id;
-		if(memcmp(host, datahost, hostlen) == 0)
+		if(memcmp(host, datahost, min(hostlen, datahostlen)) == 0)
 			return -1;
 		else
 			return id;
