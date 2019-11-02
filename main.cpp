@@ -13,6 +13,11 @@
 #include <netinet/ip.h>
 using namespace std;
 
+void usage() {
+	printf("syntax: netfilter_block <webaddress>\n");
+	printf("sample: netfilter_block test.gilgil.net\n");
+}
+
 void dump(unsigned char* buf, int size) {
 	int i;
 	for (i = 0; i < size; i++) {
@@ -22,10 +27,10 @@ void dump(unsigned char* buf, int size) {
 	}
 }
 
-char* host;
+char* host; // input webaddress
 
 /* returns packet id */
-static u_int32_t print_pkt (struct nfq_data *tb)
+static u_int32_t blockchk (struct nfq_data *tb)
 {
 	int id = 0;
 	struct nfqnl_msg_packet_hdr *ph;
@@ -120,7 +125,7 @@ static u_int32_t print_pkt (struct nfq_data *tb)
 static int cb(struct nfq_q_handle *qh, struct nfgenmsg *nfmsg,
 	      struct nfq_data *nfa, void *data)
 {
-	u_int32_t id = print_pkt(nfa);
+	u_int32_t id = blockchk(nfa);
 	if (id == -1)
 		return nfq_set_verdict(qh, id, NF_DROP, 0, NULL);
 	//printf("entering callback\n");
@@ -129,6 +134,10 @@ static int cb(struct nfq_q_handle *qh, struct nfgenmsg *nfmsg,
 
 int main(int argc, char *argv[])
 {
+	if(argc != 2) {
+		usage();
+		return -1;
+	}
 	host = argv[1];
 	printf("Start blocking %s\n", argv[1]);
 	struct nfq_handle *h;
