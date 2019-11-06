@@ -86,10 +86,12 @@ static u_int32_t blockchk (struct nfq_data *tb)
 		return id;	
 	tcphdr* tcpheader = (tcphdr*)(data + iplen);
 	int tcplen = (tcpheader -> th_off) * 4;
+	int tcpdatalen = ret - iplen - tcplen;
+	if (tcpdatalen <= 0)
+		return id;
 	unsigned char* tcpdata = (unsigned char*)(data + iplen + tcplen);
 	if(memcmp(tcpdata, "GET", 3) == 0 || memcmp(tcpdata, "POST", 4) == 0 || memcmp(tcpdata, "HEAD", 4) == 0 || memcmp(tcpdata, "PUT", 3) == 0 || memcmp(tcpdata, "DELETE", 6) == 0 || memcmp(tcpdata, "OPTIONS", 7) == 0)
 	{
-		int tcpdatalen = ret - iplen - tcplen;
 		int hostlen = strlen(host);		
 		char* datahost;
 		int datahostlen = 0;
